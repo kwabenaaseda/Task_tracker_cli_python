@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: kwabenaaseda
+      POSTGRES_PASSWORD: logosyn%402020242914
+      POSTGRES_DB: task_tracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    command: python -m src.main
+    environment:
+      DATABASE_URL: postgresql://kwabenaaseda:logosyn%402020242914@postgres:5432/task_tracker
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
