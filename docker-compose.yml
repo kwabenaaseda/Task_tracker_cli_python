@@ -5,22 +5,30 @@ services:
     image: postgres:14
     environment:
       POSTGRES_USER: kwabenaaseda
-      POSTGRES_PASSWORD: logosyn%402020242914
-      POSTGRES_DB: task_tracker
+      POSTGRES_PASSWORD: logosyn@2020242914
+      POSTGRES_DB: kwabenaaseda
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kwabenaaseda"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
     command: python -m src.main
     environment:
-      DATABASE_URL: postgresql://kwabenaaseda:logosyn%402020242914@postgres:5432/task_tracker
+      DATABASE_URL: postgresql://kwabenaaseda:logosyn%402020242914@postgres:5432/kwabenaaseda
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8000:8000"
+    stdin_open: true
+    tty: true
 
 volumes:
   postgres_data:

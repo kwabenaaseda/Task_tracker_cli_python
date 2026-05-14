@@ -7,6 +7,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-RUN chmod +x tracker
+#RUN chmod +x tracker
 
 CMD ["python", "-m", "src.main"]
