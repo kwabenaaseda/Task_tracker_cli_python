@@ -42,23 +42,28 @@ def format_output(raw_response):
     if not tasks:
         return f"{YELLOW}📭 No tasks found.{RESET}"
 
-    # Table header
-    header = f"{BOLD}{WHITE}{'ID':<28} {'Description':<48} {'Status':<15} {'Created'}{RESET}"
-    separator = "─" * (28 + 1 + 48 + 1 + 15 + 1 + 10)
+    # Table header - reordered: ID | Description | Category | Status | Created
+    header = f"{BOLD}{WHITE}{'ID':<6} {'Description':<35} {'Category':<12} {'Status':<15} {'Created':<12}{RESET}"
+    separator = "─" * (6 + 1 + 35 + 1 + 12 + 1 + 15 + 1 + 12)
 
     lines = [header, separator]
 
     for task in tasks:
-        tid      = task.get("id", "")
+        tid      = str(task.get("id", ""))[:6]
         desc     = task.get("description", "")
         status   = task.get("status", "")
-        created  = task.get("created_at", "")[:10]   # YYYY-MM-DD
+        category = task.get("category", "Uncategorized")
+        created  = str(task.get("created_at", ""))[:10]   # YYYY-MM-DD
 
         # Truncate description if needed
-        if len(desc) > 48:
-            desc = desc[:45] + "..."
+        if len(desc) > 35:
+            desc = desc[:32] + "..."
 
-        # Style status
+        # Truncate category if needed
+        if len(category) > 12:
+            category = category[:9] + "..."
+
+        # Style status with color
         if status == "DONE":
             icon, color = "✅", GREEN
         elif status == "IN_PROGRESS":
@@ -69,7 +74,7 @@ def format_output(raw_response):
             icon, color = "", WHITE
 
         status_str = f"{icon} {status}"
-        row = f"{tid:<28} {desc:<48} {color}{status_str:<15}{RESET} {created}"
+        row = f"{tid:<6} {desc:<35} {category:<12} {color}{status_str:<15}{RESET} {created:<12}"
         lines.append(row)
 
     return "\n".join(lines)
@@ -93,6 +98,8 @@ def format_dict_output(data: dict) -> str:
     if body:
         if "task" in body:
             lines.append(f"   {YELLOW}Task:{RESET} \"{body['task'].strip()}\"")
+        if "category" in body:
+            lines.append(f"   {YELLOW}Category:{RESET} {body['category']}")
         if "status" in body:
             lines.append(f"   {YELLOW}Status:{RESET} {body['status']}")
 
@@ -112,13 +119,14 @@ def HandleUser():
 ║      📖  WELCOME TO YOUR TODO APP  📖         ║
 ╠══════════════════════════════════════════════╣
 ║                                              ║
-║  ✏️  {GREEN} add <desc>                  {YELLOW}→ Create   ║
+║  ✏️  {GREEN} add <desc> [category]       {YELLOW}→ Create   ║
 ║  📋  {GREEN} list                        {YELLOW}→ List all  ║
 ║  ☑️  {GREEN} list --todo                 {YELLOW}→ TODO      ║
 ║  ⏳  {GREEN} list --progress             {YELLOW}→ IN_PROGRESS║
 ║  ✅  {GREEN} list --done                 {YELLOW}→ DONE      ║
 ║  🔄  {GREEN} status <id> <status>        {YELLOW}→ Change status║
 ║  📝  {GREEN} update <id> <desc>          {YELLOW}→ Edit desc  ║
+║  🏷️  {GREEN} category <id> <category>    {YELLOW}→ Set category║
 ║  🗑️  {GREEN} delete <id>                {YELLOW}→ Delete     ║
 ║  🧹  {GREEN} clean                        {YELLOW}→ Clear all tasks ║
 ║  ❓  {GREEN} help                        {YELLOW}→ Show help  ║

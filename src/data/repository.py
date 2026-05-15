@@ -19,6 +19,7 @@ DEFAULT = {
             "id": 0,
             "description": "Welcome to Task Manager 1.0. Happy Productivity",
             "status": "TODO",
+            "category": "General",
             "created_at": formatTime(),
             "updated_at": formatTime()
         }

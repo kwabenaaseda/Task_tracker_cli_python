@@ -1,57 +1,118 @@
 import json
+from src.logic.task import Create_task, List, Status, Update, Delete, Help, CleanHouse, SetCategory
 
-from src.logic.task import Create_task, List, Status, Update, Delete, Help, CleanHouse
-
-def router(inp:str):
+def router(inp: str):
+    """Route user commands to appropriate handlers"""
     x = inp.split(" ")
-    raw = x[1:]
-
-    if (x[0] ==  "add"):
-        message= ""
-        for mesg in raw:
-            message += mesg+" "
-
-        addTask = Create_task(message)
-        return addTask
-    elif (x[0] == "list"):
-        if len(raw) == 0:
+    
+    if len(x) == 0 or not x[0]:
+        return None
+    
+    command = x[0].lower()
+    args = x[1:] if len(x) > 1 else []
+    
+    # ===== ADD TASK =====
+    if command == "add":
+        if not args:
+            return json.dumps({
+                "status": "error",
+                "message": "Please provide task description",
+                "body": {}
+            })
+        
+        # Parse: add <description> or add <description> [category]
+        # If last arg looks like a category (no spaces), treat it as category
+        # Otherwise treat entire input as description
+        
+        description = " ".join(args)
+        category = "General"  # default
+        
+        # Simple heuristic: if description contains a colon, treat as "description:category"
+        if ":" in description:
+            parts = description.rsplit(":", 1)  # split from right (last colon)
+            description = parts[0].strip()
+            category = parts[1].strip() if parts[1].strip() else "General"
+        
+        return Create_task(description, category)
+    
+    # ===== LIST TASKS =====
+    elif command == "list":
+        if not args:
             return List("all")
-        elif raw[0] == "--todo":
+        elif args[0] == "--todo":
             return List("todo")
-        
-        elif raw[0] == "--done":
+        elif args[0] == "--done":
             return List("done")
-        
-        elif raw[0] == "--progress":
+        elif args[0] == "--progress":
             return List("progress")
-        
-    elif (x[0] == "status"):
-        id = raw[0]
-        status = raw[1]
-        return Status(id, status)
+        else:
+            return List("all")
     
-    elif (x[0] == "update"):
-        id = raw[0]
-        message= ""
-        for mesg in raw[1:]:
-            message += mesg+" "
-        return Update(id, message)
+    # ===== SET CATEGORY =====
+    elif command == "category":
+        if len(args) < 2:
+            return json.dumps({
+                "status": "error",
+                "message": "Usage: category <id> <category_name>",
+                "body": {}
+            })
+        task_id = args[0]
+        category = " ".join(args[1:])
+        return SetCategory(task_id, category)
     
-    elif (x[0] == "delete"):
-        id = raw[0]
-        return Delete(id)
+    # ===== CHANGE STATUS =====
+    elif command == "status":
+        if len(args) < 2:
+            return json.dumps({
+                "status": "error",
+                "message": "Usage: status <id> <status>",
+                "body": {}
+            })
+        task_id = args[0]
+        status = args[1]
+        return Status(task_id, status)
     
-    elif (x[0] == "help"):
+    # ===== UPDATE DESCRIPTION =====
+    elif command == "update":
+        if len(args) < 2:
+            return json.dumps({
+                "status": "error",
+                "message": "Usage: update <id> <new_description>",
+                "body": {}
+            })
+        task_id = args[0]
+        new_description = " ".join(args[1:])
+        return Update(task_id, new_description)
+    
+    # ===== DELETE TASK =====
+    elif command == "delete":
+        if not args:
+            return json.dumps({
+                "status": "error",
+                "message": "Usage: delete <id>",
+                "body": {}
+            })
+        task_id = args[0]
+        return Delete(task_id)
+    
+    # ===== HELP =====
+    elif command == "help":
         return Help()
     
-    elif (x[0] == "exit"):
-        return "exit"
-    
-    elif (x[0] == "clean"):
+    # ===== CLEAN ALL =====
+    elif command == "clean":
         return CleanHouse()
     
+    # ===== EXIT =====
+    elif command == "exit":
+        return "exit"
+    
+    # ===== UNKNOWN COMMAND =====
     else:
-        print("unknown rule")
-
+        return json.dumps({
+            "status": "error",
+            "message": f"Unknown command: {command}. Type 'help' for available commands.",
+            "body": {}
+        })
 
 __all__ = ["router"]

@@ -29,6 +29,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS tasks (
                 id SERIAL PRIMARY KEY,
                 description TEXT NOT NULL,
+                category VARCHAR(50) DEFAULT 'General',
                 status VARCHAR(50) DEFAULT 'TODO',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -54,7 +55,7 @@ def READPS():
     
     try:
         cur = conn.cursor()
-        cur.execute("SELECT id, description, status, created_at, updated_at FROM tasks ORDER BY created_at")
+        cur.execute("SELECT id, description, category, status, created_at, updated_at FROM tasks ORDER BY created_at")
         rows = cur.fetchall()
         cur.close()
         conn.close()
@@ -65,8 +66,9 @@ def READPS():
                 "id": str(row[0]),
                 "description": row[1],
                 "status": row[2],
-                "created_at": row[3].isoformat(),
-                "updated_at": row[4].isoformat()
+                "category": row[3],
+                "created_at": row[4].isoformat(),
+                "updated_at": row[5].isoformat()
             }
             for row in rows
         ]
